@@ -74,3 +74,21 @@ class BatchExportRequest(BaseModel):
     include_accepted: bool = Field(
         True, description="Include accepted rephrases in export"
     )
+
+
+class UserCreate(BaseModel):
+    email: str = Field(..., description="User email")
+    password: str = Field(..., description="User password")
+    full_name: Optional[str] = Field(None, description="Full name")
+
+
+class UserLogin(BaseModel):
+    email: str = Field(..., description="User email")
+    password: str = Field(..., description="User password")
+
+
+class UserResponse(BaseModel):
+    id: str = Field(..., description="User ID")
+    email: str = Field(..., description="User email")
+    full_name: Optional[str] = Field(None, description="Full name")
+    is_active: bool = Field(True, description="Whether user is active")

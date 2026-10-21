@@ -24,7 +24,7 @@ from app.services.s3_service import (
     generate_user_key,
 )
 from app.models import (UploadResponse, BatchStatus, SentenceResult,
-                         PlagiarismBatch)
+                         PlagiarismBatch, UserCreate, UserLogin, UserResponse)
 
 app = FastAPI(
     title="Plagiarism Checker Pro",
@@ -344,6 +344,42 @@ async def accept_reject_sentence(
     return {"status": "updated", "sentence_idx": sentence_idx, "accepted": accepted}
 
 
+# Auth dependencies (simulated)
+fake_users_db = {}
+
+@app.post("/auth/register", response_model=UserResponse, description="Register a new user")
+async def register(user: UserCreate):
+    """Register a new user account."""
+    user_id = f"user_{uuid.uuid4().hex[:8]}"
+    fake_users_db[user_id] = {
+        "id": user_id,
+        "email": user.email,
+        "full_name": user.full_name,
+        "is_active": True,
+    }
+    return fake_users_db[user_id]
+
+
+@app.post("/auth/login", response_model=UserResponse, description="Login with email and password")
+async def login(user: UserLogin):
+    """Login with email and password."""
+    for stored_user in fake_users_db.values():
+        if stored_user["email"] == user.email:
+            return stored_user
+    raise HTTPException(status_code=400, detail="Invalid credentials")
+
+
+@app.get("/auth/me", response_model=UserResponse, description="Get current user info")
+async def get_current_user():
+    """Get current authenticated user."""
+    # In a real app, this would get the user from the token/session
+    # For now, return a default user or raise 404
+    if not fake_users_db:
+        raise HTTPException(status_code=404, detail="No user logged in")
+    # Return first user as demo
+    return list(fake_users_db.values())[0]
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=4444)

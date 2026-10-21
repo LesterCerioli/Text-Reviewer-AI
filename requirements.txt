@@ -25,11 +25,9 @@ transformers>=4.41.0
 # PyTorch for model inference
 torch>=2.4.0
 
-# Drag-and-drop and frontend support
-react>=19.0.0  # frontend framework reference
 
-# CORS middleware
-cors-middleware>=0.1.0
+
+
 
 # Rich progress bars
 tqdm>=4.66.0
@@ -37,5 +35,3 @@ tqdm>=4.66.0
 # PDF generation (alternative)
 reportlab>=4.1.0
 
-# Base64 for file encoding
-base64>=1.0.0
