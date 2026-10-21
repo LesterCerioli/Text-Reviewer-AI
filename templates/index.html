@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plagiarism Checker Pro</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --background: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            padding: 1rem 2rem;
+            border-bottom: 2px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title-area {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .title-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), #1e40af);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .title-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .title-text p {
+            font-size: 0.875rem;
+            color: var(--secondary);
+        }
+
+        /* Main content */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Upload area */
+        .upload-area {
+            border: 2px dashed var(--primary);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area.drag-over {
+            border-color: var(--success);
+            background: #ecfdf5;
+        }
+
+        .upload-area:hover {
+            border-color: #1e40af;
+        }
+
+        .upload-area h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-area p {
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+
+        .upload-area .hint {
+            margin-top: 1rem;
+            color: var(--secondary);
+            font-size: 0.85rem;
+        }
+
+        /* File list */
+        .file-list {
+            background: var(--card);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .file-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--text);
+        }
+
+        .file-details span {
+            color: var(--secondary);
+            font-size: 0.85rem;
+        }
+
+        .file-details .filename {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .file-details .remove {
+            color: var(--error);
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* Progress section */
+        .progress-section {
+            background: var(--card);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .progress-section.visible {
+            display: block;
+        }
+
+        .progress-section h4 {
+            margin-bottom: 0.75rem;
+            color: var(--secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #1e40af);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-percent {
+            margin-left: 0.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* Results grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .result-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .result-card.plagiarized {
+            border-left: 4px solid var(--warning);
+        }
+
+        .result-card.original {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .result-card.accepted {
+            border-left: 4px solid var(--success);
+        }
+
+        .result-card.rejected {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .card-header {
+            display: flex;
+ justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .card-sentence {
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .card-status {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .status-plagiarized {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-original {
+            background: #e2e8f0;
+            color: var(--text);
+        }
+
+        .status-accepted {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .status-rejected {
+            background: #e2e8f0;
+            color: var(--text);
+        }
+
+        .card-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.5rem 0.75rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .action-btn.accept {
+            background: var(--success);
+            color: white;
+        }
+
+        .action-btn.reject {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .action-btn.view {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Action buttons */
+        .actions-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.875rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #1e40af;
+        }
+
+        /* Sidebar for comparison */
+        .sidebar {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            height: fit-content;
+            margin-top: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .sidebar h3 {
+            margin-bottom: 1rem;
+            color: var(--secondary);
+        }
+
+        .comparison-pane {
+            display: none;
+            gap: 1rem;
+        }
+
+        .comparison-pane.active {
+            display: flex;
+        }
+
+        .pane {
+            flex: 1;
+        }
+
+        .pane.original {
+            border-right: 2px solid var(--secondary);
+        }
+
+        .pane.rewritten {
+            border-left: 2px solid var(--primary);
+        }
+
+        .pane h4 {
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--secondary);
+        }
+
+        .pane .sentence {
+            padding: 0.75rem;
+            border-radius: 6px;
+        }
+
+        .pane .original-sentence {
+            background: #f1f5f9;
+        }
+
+        .pane .rewritten-sentence {
+            background: #ecfdf5;
+        }
+
+        /* Export section */
+        .export-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .export-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 0.875rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .export-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: block;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            color: var(--secondary);
+            cursor: pointer;
+        }
+
+        @media (max-width: 640px) {
+            .header-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            main {
+                padding: 1rem;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .comparison-pane {
+                flex-direction: column;
+            }
+            
+            .pane.original,
+            .pane.rewritten {
+                border-right: none;
+                border-bottom: 2px solid var(--secondary);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="title-area">
+                <div class="title-icon">PC</div>
+                <div class="title-text">
+                    <h1>Plagiarism Checker Pro</h1>
+                    <p>Sentence-level detection & AI rephrasing</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Upload Area -->
+        <div class="upload-area" id="uploadArea" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+            <h3>Drag & Drop Files</h3>
+            <p>Upload 3-5 DOCX or PDF files (10,000+ words)</p>
+            <p class="hint">Supported: .docx, .pdf</p>
+            <input type="file" id="fileInput" multiple accept=".docx,.pdf" style="display:none;">
+            <button style="margin-top:1rem; padding:0.5rem 1rem; cursor:pointer;">Browse</button>
+        </div>
+
+        <!-- File List -->
+        <div class="file-list" id="fileList">
+            <!-- Files will appear here -->
+        </div>
+
+        <!-- Progress Section -->
+        <div class="progress-section" id="progressSection">
+            <h4>Processing Batch</h4>
+            <div class="progress-bar">
+                <div class="progress-bar-fill" id="progressFill"></div>
+            </div>
+            <span class="progress-percent" id="progressPercent">0%</span>
+        </div>
+
+        <!-- Results Grid -->
+        <div class="results-grid" id="resultsGrid"></div>
+
+        <!-- Comparison Sidebar -->
+        <div class="sidebar" id="sidebar" style="display:none;">
+            <h3>Sentence Comparison</h3>
+            <div class="comparison-pane" id="comparisonPane">
+                <div class="Pane original" id="paneOriginal">
+                    <h4>Original</h4>
+                    <div id="originalSentence" class="sentence original-sentence"></div>
+                </div>
+                <div class="Pane rewritten" id="paneRewritten">
+                    <h4>Rewritten</h4>
+                    <div id="rewrittenSentence" class="sentence rewritten-sentence"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="actions-section">
+            <button class="btn-primary" id="exportBtn" disabled>Export Final DOCX</button>
+        </div>
+
+        <!-- Export Section -->
+        <div class="export-section" id="exportSection" style="display:none;">
+            <h3>Export Document</h3>
+            <p>The document includes accepted rephrased sentences and highlights plagiarized content.</p>
+            <button class="export-btn" id="finalExportBtn" disabled>Download DOCX</button>
+        </div>
+    </main>
+
+    <!-- Result Modal -->
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <span class="modal-close" id="modalClose">&times;</span>
+            <h3 id="modalTitle">Result</h3>
+            <p id="modalText"></p>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let uploadedFiles = [];
+        let allResults = [];
+        let currentSentenceIndex = 0;
+        let batchTaskId = null;
+
+        // DOM Elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileList = document.getElementById('fileList');
+        const fileInput = document.getElementById('fileInput');
+        const progressSection = document.getElementById('progressSection');
+        const progressFill = document.getElementById('progressFill');
+        const progressPercent = document.getElementById('progressPercent');
+        const resultsGrid = document.getElementById('resultsGrid');
+        const sidebar = document.getElementById('sidebar');
+        const comparisonPane = document.getElementById('comparisonPane');
+        const paneOriginal = document.getElementById('paneOriginal');
+        const paneRewritten = document.getElementById('paneRewritten');
+        const originalSentence = document.getElementById('originalSentence');
+        const rewrittenSentence = document.getElementById('rewrittenSentence');
+        const exportBtn = document.getElementById('exportBtn');
+        const finalExportBtn = document.getElementById('finalExportBtn');
+        const exportSection = document.getElementById('exportSection');
+        const resultModal = document.getElementById('resultModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalText = document.getElementById('modalText');
+        const modalClose = document.getElementById('modalClose');
+
+        // Handle drag over
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        }
+
+        // Handle drop
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        }
+
+        // Handle file input
+        document.querySelector('button[style*="cursor:pointer"]').addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        // Handle files
+        async function handleFiles(files) {
+            // Limit to 5 files
+            if (uploadedFiles.length + files.length > 5) {
+                showModal('Error', 'Maximum 5 files allowed');
+                return;
+            }
+            
+            // Validate file types
+            const validFiles = Array.from(files).filter(f => f.name.endsWith('.docx') || f.name.endsWith('.pdf'));
+            if (validFiles.length !== files.length) {
+                showModal('Error', 'Please upload only .docx or .pdf files');
+                return;
+            }
+            
+            uploadedFiles = [...uploadedFiles, ...validFiles];
+            renderFileList();
+        }
+
+        // Render file list
+        function renderFileList() {
+            fileList.innerHTML = '';
+            
+            uploadedFiles.forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    fileList.innerHTML += `
+                        <div class="file-item">
+                            <div class="file-info">
+                                <div class="file-icon">${idx + 1}</div>
+                                <div class="file-details">
+                                    <span>File ${idx + 1}</span>
+                                    <span class="filename">${file.name}</span>
+                                </div>
+                            </div>
+                            <span class="remove" onclick="removeFile(${idx})">×</span>
+                        </div>`;
+                };
+                reader.readAsText(file);
+            });
+        }
+
+        function removeFile(idx) {
+            uploadedFiles.splice(idx, 1);
+            renderFileList();
+        }
+
+        // Start batch processing
+        async function startProcessing() {
+            if (uploadedFiles.length < 3) {
+                showModal('Error', 'Please upload 3-5 files');
+                return;
+            }
+            
+            // Show progress
+            progressSection.classList.add('visible');
+            resultsGrid.innerHTML = '';
+            sidebar.style.display = 'none';
+            exportSection.style.display = 'none';
+            exportBtn.disabled = true;
+            finalExportBtn.disabled = true;
+            
+            // Create FormData
+            const formData = new FormData();
+            uploadedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                batchTaskId = data.task_id;
+                
+                // Poll for status
+                pollStatus();
+                
+            } catch (err) {
+                console.error('Processing error:', err);
+                showModal('Error', 'Failed to start processing');
+            }
+        }
+
+        // Poll for batch status
+        async function pollStatus() {
+            if (!batchTaskId) return;
+            
+            const maxAttempts = 60;  // 5 minutes max
+            let attempt = 0;
+            
+            while (attempt < maxAttempts) {
+                await new Promise(r => setTimeout(r, 5000));  // 5 second wait
+                
+                attempt++;
+                const response = await fetch(`/api/batch/${batchTaskId}`);
+                const status = await response.json();
+                
+                // Update progress
+                progressFill.style.width = `${status.progress}%`;
+                progressPercent.textContent = `${Math.round(status.progress)}%`;
+                
+                if (status.status === 'completed') {
+                    allResults = status.results;
+                    renderResults();
+                    sidebar.style.display = 'block';
+                    exportSection.style.display = 'block';
+                    exportBtn.disabled = false;
+                    finalExportBtn.disabled = false;
+                    break;
+                } else if (status.status === 'failed') {
+                    showModal('Error', 'Batch processing failed');
+                    break;
+                }
+            }
+        }
+
+        // Render results as cards
+        function renderResults() {
+            resultsGrid.innerHTML = '';
+            
+            allResults.forEach((result, idx) => {
+                const cardClass = result.is_plagiarized ? 'plagiarized' : 'original';
+                const statusClass = result.acceptance_status ? 'accepted' : 'rejected';
+                
+                resultsGrid.innerHTML += `
+                    <div class="result-card ${cardClass} ${statusClass}" data-index="${idx}">
+                        <div class="card-header">
+                            <span class="card-sentence">${truncateText(result.original_text, 120)}</span>
+                            <span class="card-status status-${statusClass}">
+                                ${statusClass === 'accepted' ? 'Accepted' : 'Rejected'}
+                            </span>
+                        </div>
+                        
+                        <div class="card-actions">
+                            <button class="action-btn accept ${result.acceptance_status ? 'disabled' : ''}" 
+                                    onclick="toggleAcceptance(${idx})"
+                                    ${result.acceptance_status ? 'disabled' : ''}>
+                                ${result.acceptance_status ? '✓' : 'Accept'}
+                            </button>
+                            <button class="action-btn reject ${!result.acceptance_status ? 'disabled' : ''}" 
+                                    onclick="toggleAcceptance(${idx})"
+                                    ${!result.acceptance_status ? 'disabled' : ''}>
+                                ${!result.acceptance_status ? '✗' : 'Reject'}
+                            </button>
+                        </div>
+                    </div>`;
+            });
+            
+            // Enable export button if we have results
+            const hasResults = allResults.length > 0;
+            exportBtn.disabled = !hasResults;
+        }
+
+        // Toggle acceptance status
+        async function toggleAcceptance(idx) {
+            const result = allResults[idx];
+            result.acceptance_status = !result.acceptance_status;
+            
+            // Update UI
+            const card = document.querySelector(`[data-index="${idx}"]`);
+            const statusSpan = card.querySelector('.card-status');
+            const acceptBtn = card.querySelector('.action-btn.accept');
+            const rejectBtn = card.querySelector('.action-btn.reject');
+            
+            statusSpan.className = `card-status status-${result.acceptance_status ? 'accepted' : 'rejected'}`;
+            statusSpan.textContent = result.acceptance_status ? 'Accepted' : 'Rejected';
+            acceptBtn.textContent = result.acceptance_status ? '✓' : 'Accept';
+            rejectBtn.textContent = !result.acceptance_status ? '✗' : 'Reject';
+            acceptBtn.disabled = result.acceptance_status;
+            rejectBtn.disabled = !result.acceptance_status;
+            
+            // Show comparison if this is the current sentence
+            if (idx === currentSentenceIndex) {
+                showComparison(idx);
+            }
+        }
+
+        // Show comparison view
+        function showComparison(idx) {
+            const result = allResults[idx];
+            currentSentenceIndex = idx;
+            
+            originalSentence.textContent = result.original_text;
+            originalSentence.className = 'sentence original-sentence';
+            
+            if (result.rephrased_text) {
+                rewrittenSentence.textContent = result.rephrased_text;
+                rewrittenSentence.className = 'sentence rewritten-sentence';
+            } else {
+                rewrittenSentence.textContent = 'Generating rephrased version...';
+                rewrittenSentence.className = 'sentence rewritten-sentence';
+            }
+            
+            // Activate comparison view
+            comparisonPane.classList.add('active');
+            sidebar.style.display = 'block';
+       
+
+        // Hide comparison view
+        function hideComparison() {
+            comparisonPane.classList.remove('active');
+            sidebar.style.display = 'none';
+        }
+
+        // Truncate text
+        function truncateText(text, maxLength) {
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+
+        // Show modal
+        function showModal(title, text) {
+            modalTitle.textContent = title;
+            modalText.textContent = text;
+            resultModal.classList.add('active');
+        }
+
+        // Hide modal
+        modalClose.addEventListener('click', () => resultModal.classList.remove('active'));
+        window.addEventListener('click', (e) => {
+            if (e.target === resultModal) resultModal.classList.remove('active');
+        });
+
+        // Export document
+        async function exportDocument() {
+            if (!batchTaskId) return;
+            
+            try {
+                const response = await fetch(`/api/export/${batchTaskId}`, {
+                    method: 'GET',
+                    responseType: 'blob'
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'plagiarism_checked.docx';
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    showModal('Success', 'Document exported successfully');
+                } else {
+                    const err = await response.json();
+                    showModal('Error', err.detail || 'Export failed');
+                }
+            } catch (err) {
+                console.error('Export error:', err);
+                showModal('Error', 'Failed to export document');
+            }
+        }
+
+        // Initial setup
+        exportBtn.addEventListener('click', startProcessing);
+        finalExportBtn.addEventListener('click', exportDocument);
+    </script>
+</body>
+</html>
